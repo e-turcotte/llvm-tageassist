@@ -69,6 +69,7 @@ extern "C" LLVM_C_ABI void LLVMInitializeX86Target() {
   RegisterTargetMachine<X86TargetMachine> Y(getTheX86_64Target());
 
   PassRegistry &PR = *PassRegistry::getPassRegistry();
+  initializeX86BranchNopInjectionPass(PR);
   initializeX86LowerAMXIntrinsicsLegacyPassPass(PR);
   initializeX86LowerAMXTypeLegacyPassPass(PR);
   initializeX86PreTileConfigLegacyPass(PR);
@@ -585,6 +586,8 @@ void X86PassConfig::addPreEmitPass() {
 void X86PassConfig::addPreEmitPass2() {
   const Triple &TT = TM->getTargetTriple();
   const MCAsmInfo *MAI = TM->getMCAsmInfo();
+
+  addPass(createX86BranchNopInjectionPass());
 
   // The X86 Speculative Execution Pass must run after all control
   // flow graph modifying passes. As a result it was listed to run right before

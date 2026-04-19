@@ -29,6 +29,7 @@ FUNCTION_PASS("x86-partial-reduction", X86PartialReductionPass(this))
 #ifndef MACHINE_FUNCTION_PASS
 #define MACHINE_FUNCTION_PASS(NAME, CREATE_PASS)
 #endif
+MACHINE_FUNCTION_PASS("x86-branch-nopinjection", X86BranchNopInjectionPass())
 MACHINE_FUNCTION_PASS("x86-argument-stack-slot", X86ArgumentStackSlotPass())
 MACHINE_FUNCTION_PASS("x86-avoid-sfb", X86AvoidStoreForwardingBlocksPass())
 MACHINE_FUNCTION_PASS("x86-avoid-trailing-call", X86AvoidTrailingCallPass())

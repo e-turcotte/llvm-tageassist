@@ -198,6 +198,9 @@ void X86CodeGenPassBuilder::addPreEmitPass2(PassManagerWrapper &PMW) const {
   const Triple &TT = TM.getTargetTriple();
   const MCAsmInfo *MAI = TM.getMCAsmInfo();
 
+  addMachineFunctionPass(X86BranchNopInjectionPass(),
+                         PMW);
+  
   // The X86 Speculative Execution Pass must run after all control
   // flow graph modifying passes. As a result it was listed to run right before
   // the X86 Retpoline Thunks pass. The reason it must run after control flow
