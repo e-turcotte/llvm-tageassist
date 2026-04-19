@@ -51,7 +51,7 @@ PreservedAnalyses X86BranchNopInjectionPass::run(
 
 char X86BranchNopInjection::ID = 0;
 
-FunctionPass *createX86BranchNopInjectionPass() {
+FunctionPass *llvm::createX86BranchNopInjectionPass() {
   return new X86BranchNopInjection();
 }
 
