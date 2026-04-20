@@ -30,11 +30,11 @@ from pathlib import Path
 
 
 def parse_csv(csv_path: str) -> dict[int, int]:
-    """Return {pc: byte} from the CSV file.
+    """Return {nop_pc: prefix_byte} from the CSV file.
 
     Accepts:
-      • Files with a header row containing 'pc' and 'byte' columns (case-insensitive).
-      • Files with exactly two columns and no header (first = pc, second = byte).
+      • Files with a header row containing 'nop_pc' and 'prefix_byte' columns (case-insensitive).
+      • Files with exactly two columns and no header (first = nop_pc, second = prefix_byte).
     Both hex (0x…) and decimal values are accepted for both columns.
     """
     path = Path(csv_path)
@@ -54,43 +54,43 @@ def parse_csv(csv_path: str) -> dict[int, int]:
 
         if has_header:
             reader.fieldnames = [f.strip().lower() for f in (reader.fieldnames or [])]
-            if "pc" not in reader.fieldnames or "byte" not in reader.fieldnames:
+            if "nop_pc" not in reader.fieldnames or "prefix_byte" not in reader.fieldnames:
                 sys.exit(
-                    f"[ERROR] CSV header must contain 'pc' and 'byte' columns. "
+                    f"[ERROR] CSV header must contain 'nop_pc' and 'prefix_byte' columns. "
                     f"Found: {reader.fieldnames}"
                 )
             for lineno, row in enumerate(reader, start=2):
-                pc_str = row["pc"].strip()
-                byte_str = row["byte"].strip()
+                nop_pc_str = row["nop_pc"].strip()
+                prefix_byte_str = row["prefix_byte"].strip()
                 try:
-                    pc = int(pc_str, 0)
-                    byte = int(byte_str, 0)
+                    nop_pc = int(nop_pc_str, 0)
+                    prefix_byte = int(prefix_byte_str, 0)
                 except ValueError:
-                    print(f"[WARN] Skipping malformed row {lineno}: pc={pc_str!r}, byte={byte_str!r}")
+                    print(f"[WARN] Skipping malformed row {lineno}: nop_pc={nop_pc_str!r}, prefix_byte={prefix_byte_str!r}")
                     continue
-                if not (0 <= byte <= 0xFF):
-                    print(f"[WARN] Byte value {byte:#x} out of range at row {lineno}; skipping.")
+                if not (0 <= prefix_byte <= 0xFF):
+                    print(f"[WARN] Byte value {prefix_byte:#x} out of range at row {lineno}; skipping.")
                     continue
-                entries[pc] = byte
+                entries[nop_pc] = prefix_byte
         else:
             for lineno, row in enumerate(reader, start=1):
                 if len(row) < 2:
                     print(f"[WARN] Skipping short row {lineno}: {row}")
                     continue
-                pc_str, byte_str = row[0].strip(), row[1].strip()
+                nop_pc_str, prefix_byte_str = row[0].strip(), row[1].strip()
                 try:
-                    pc = int(pc_str, 0)
-                    byte = int(byte_str, 0)
+                    nop_pc = int(nop_pc_str, 0)
+                    prefix_byte = int(prefix_byte_str, 0)
                 except ValueError:
-                    print(f"[WARN] Skipping malformed row {lineno}: pc={pc_str!r}, byte={byte_str!r}")
+                    print(f"[WARN] Skipping malformed row {lineno}: nop_pc={nop_pc_str!r}, prefix_byte={prefix_byte_str!r}")
                     continue
-                if not (0 <= byte <= 0xFF):
-                    print(f"[WARN] Byte value {byte:#x} out of range at row {lineno}; skipping.")
+                if not (0 <= prefix_byte <= 0xFF):
+                    print(f"[WARN] Byte value {prefix_byte:#x} out of range at row {lineno}; skipping.")
                     continue
-                entries[pc] = byte
+                entries[nop_pc] = prefix_byte
 
     if not entries:
-        sys.exit("[ERROR] No valid (pc, byte) entries found in CSV.")
+        sys.exit("[ERROR] No valid (nop_pc, prefix_byte) entries found in CSV.")
 
     print(f"[INFO] Loaded {len(entries)} entries from {csv_path}")
     return entries
@@ -111,7 +111,7 @@ _ADDR_LABEL_RE = re.compile(
 )
 
 # Matches a NOP with optional trailing comment:  nop  or  nop ; ...
-_NOP_INSTR_RE = re.compile(r"^\s*nop\b\s*(;.*)?$", re.IGNORECASE)
+_NOP_INSTR_RE = re.compile(r"^\s*90\s*nop\b\s*(;.*)?$", re.IGNORECASE)
 
 
 def extract_address(line: str) -> int | None:
@@ -142,7 +142,7 @@ def replace_nop_with_byte(line: str, pc: int, byte_val: int) -> str:
     # Capture everything up to and including the label colon + whitespace.
     label_match = re.match(r"^(\s*[^:]+:\s*)", line)
     prefix = label_match.group(1) if label_match else ""
-    return f"{prefix}db {byte_val:#04x}  ; replaced nop at {pc:#010x}\n"
+    return f"{prefix}{byte_val:02X}  ; replaced nop at {pc:#010x}\n"
 
 
 # ---------------------------------------------------------------------------
