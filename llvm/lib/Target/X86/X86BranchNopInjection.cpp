@@ -8,8 +8,15 @@
 #include "llvm/CodeGen/TargetInstrInfo.h"
 #include "llvm/Pass.h"
 #include "llvm/Target/TargetMachine.h"
+#include "llvm/Support/CommandLine.h"
 
 using namespace llvm;
+
+static llvm::cl::opt<bool> SkipNopInjection(
+    "skip-nop-injection", 
+    llvm::cl::init(false), 
+    llvm::cl::desc("Skip the custom X86 Branch Nop Injection Pass")
+);
 
 struct X86BranchNopInjection : public MachineFunctionPass {
     static char ID;
@@ -38,6 +45,10 @@ runX86BranchNopInjection(MachineFunction &MF) {
 
 bool X86BranchNopInjection::runOnMachineFunction(
     MachineFunction &MF) {
+
+  if (SkipNopInjection)
+    return false; // Do nothing and indicate no changes were made
+
   return runX86BranchNopInjection(MF);
 }
 
