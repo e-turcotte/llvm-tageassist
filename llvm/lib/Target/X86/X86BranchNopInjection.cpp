@@ -31,15 +31,18 @@ runX86BranchNopInjection(MachineFunction &MF) {
 	bool Modified = false;
 
 	for (MachineBasicBlock &MBB : MF) {
-		for (auto I = MBB.begin(); I != MBB.end(); ++I) {
-			if (I->isBranch()) {
-				// Insert NOP immediately before the branch
-				BuildMI(MBB, I, I->getDebugLoc(),
-						TII->get(X86::NOOP)); // swap opcode for your ISA
-				Modified = true;
-			}
-		}
+		auto FirstTerm = MBB.getFirstTerminator();
+
+		if (FirstTerm == MBB.end())
+			continue;
+
+		if (!FirstTerm->isConditionalBranch() && !FirstTerm->isIndirectBranch())
+			continue; // unconditional — no hint needed
+
+		BuildMI(MBB, FirstTerm, FirstTerm->getDebugLoc(),
+				TII->get(X86::NOOP));
 	}
+
 	return Modified;
 }
 

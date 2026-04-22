@@ -581,13 +581,14 @@ void X86PassConfig::addPreEmitPass() {
   }
   addPass(createX86CompressEVEXLegacyPass());
   addPass(createX86InsertX87WaitLegacyPass());
+
+
+  addPass(createX86BranchNopInjectionPass());
 }
 
 void X86PassConfig::addPreEmitPass2() {
   const Triple &TT = TM->getTargetTriple();
   const MCAsmInfo *MAI = TM->getMCAsmInfo();
-
-  addPass(createX86BranchNopInjectionPass());
 
   // The X86 Speculative Execution Pass must run after all control
   // flow graph modifying passes. As a result it was listed to run right before
